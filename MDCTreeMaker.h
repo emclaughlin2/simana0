@@ -14,7 +14,7 @@ class MDCTreeMaker : public SubsysReco
 {
  public:
 
-  MDCTreeMaker(const std::string &name = "MDCTreeMaker", const int dataormc = 0, const int debug = 0, const int correct = 1);
+  MDCTreeMaker(const std::string &name = "MDCTreeMaker", const std::string &filename = "output.root", const int dataormc = 0, const int debug = 0, const int correct = 1, const std::string &emcal_node = "TOWERINFO_CALIB_CEMC", const std::string &ihcal_node = "TOWERINFO_CALIB_HCALIN", const std::string &ohcal_node = "TOWERINFO_CALIB_HCALOUT");
 
   virtual ~MDCTreeMaker();
 
@@ -36,6 +36,9 @@ class MDCTreeMaker : public SubsysReco
 
 
  private:
+  bool use_hcal;
+  bool use_emcal;
+  bool use_mbd;
   int _evtct;
   int _correct;
   int _debug;
@@ -43,6 +46,9 @@ class MDCTreeMaker : public SubsysReco
   TFile *_f;
   TTree *_tree;
   std::string _foutname;
+  std::string _emcal_node;
+  std::string _ihcal_node;
+  std::string _ohcal_node;
   int sectorem;
   int sectorih;
   int sectoroh;
@@ -104,6 +110,7 @@ class MDCTreeMaker : public SubsysReco
   float truthparh_phi[100000];
   int truthparh_id[100000];
   int hotmap[3][96][256] = {0};
+  int goodmap[3][96][256] = {0};
   std::vector<int> baryons{2212,2112,2224,2214,2114,1114,3122,3222,3212,3112,
       3224,3214,3114,3322,3312,3324,3314,3334,4122,4222,4212,4112,4224,4214,
       4114,4232,4312,4324,4314,4332,4334,4412,4422,4414,4424,4432,4434,4444,

@@ -10,6 +10,7 @@
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfoContainerv2.h>
 #include <calobase/TowerInfoContainerv3.h>
+#include <calobase/TowerInfo.h>
 #include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/GlobalVertex.h>
 #include <g4main/PHG4VtxPoint.h>
@@ -46,19 +47,32 @@
 
 using namespace std;
 //____________________________________________________________________________..
-MDCTreeMaker::MDCTreeMaker(const std::string &name, const int dataormc, const int debug, const int correct):
+MDCTreeMaker::MDCTreeMaker(const std::string &name, const std::string &filename, const int dataormc, const int debug, const int correct, const std::string &emcal_node, const std::string &ihcal_node, const std::string &ohcal_node):
   SubsysReco((name+"test").c_str())
 {
+  use_emcal = true; // edited 2.27.24 for pedestal data testing 
+  use_hcal = true; // edited 3.8.24 for truth generator upweighting
+  use_mbd = true; // edited 2.27.24 for pedestal data testing 
   _evtct = 0;
   _correct = correct;
-  _foutname = name;  
+  _foutname = filename;  
   _dataormc = dataormc;
   _debug = debug;
+  _emcal_node = emcal_node;
+  _ihcal_node = ihcal_node;
+  _ohcal_node = ohcal_node;
   for(int i=0; i<96; ++i) {
     for(int j=0; j<256; ++j) {
     hotmap[0][i][j] = 0;
     hotmap[1][i][j] = 0;
     hotmap[2][i][j] = 0;
+    }
+  }
+  for (int i = 0; i < 96; i++) {
+    for (int j = 0; j < 256; j++) {
+      goodmap[0][i][j] = 0;
+      goodmap[1][i][j] = 0;
+      goodmap[2][i][j] = 0;
     }
   }
 }
@@ -168,29 +182,38 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
     RawTowerGeomContainer *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
     
     //Get towerinfocontainer objects from nodetree
-    TowerInfoContainer *towersEM = findNode::getClass<TowerInfoContainerv2>(topNode, "TOWERINFO_CALIB_CEMC");
-    TowerInfoContainer *towersIH = findNode::getClass<TowerInfoContainerv2>(topNode, "TOWERINFO_CALIB_HCALIN");
-    TowerInfoContainer *towersOH = findNode::getClass<TowerInfoContainerv2>(topNode, "TOWERINFO_CALIB_HCALOUT");
-    TowerInfoContainer *towersEMuc = findNode::getClass<TowerInfoContainerv2>(topNode, "TOWERS_CEMC");
-    TowerInfoContainer *towersIHuc = findNode::getClass<TowerInfoContainerv2>(topNode, "TOWERS_HCALIN");
-    TowerInfoContainer *towersOHuc = findNode::getClass<TowerInfoContainerv2>(topNode, "TOWERS_HCALOUT");
-    TowerInfoContainer *towersEMzs = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_SZ_CALIB_CEMC");
-    TowerInfoContainer *towersIHzs = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_SZ_CALIB_HCALIN");
-    TowerInfoContainer *towersOHzs = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_SZ_CALIB_HCALOUT");
-
     TowerInfoContainerv1 *towersEMuczs; 
     TowerInfoContainerv1 *towersIHuczs;
     TowerInfoContainerv1 *towersOHuczs;
+    TowerInfoContainer *towersEM;
+    TowerInfoContainer *towersIH;
+    TowerInfoContainer *towersOH;
+    TowerInfoContainer *towersEMuc;
+    TowerInfoContainer *towersIHuc;
+    TowerInfoContainer *towersOHuc;
+    TowerInfoContainer *towersEMzs;
+    TowerInfoContainer *towersIHzs;
+    TowerInfoContainer *towersOHzs;
+
     if (!_dataormc) {
+      towersEM  = findNode::getClass<TowerInfoContainerv2>(topNode, _emcal_node);
+      towersIH = findNode::getClass<TowerInfoContainerv2>(topNode, _ihcal_node);
+      towersOH = findNode::getClass<TowerInfoContainerv2>(topNode, _ohcal_node);
       towersEMuczs = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERS_SZ_CEMC");
       towersIHuczs = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERS_SZ_HCALIN");
       towersOHuczs = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERS_SZ_HCALOUT");
+      towersEMuc = findNode::getClass<TowerInfoContainerv2>(topNode, "TOWERS_CEMC");
+      towersIHuc = findNode::getClass<TowerInfoContainerv2>(topNode, "TOWERS_HCALIN");
+      towersOHuc = findNode::getClass<TowerInfoContainerv2>(topNode, "TOWERS_HCALOUT");
+      towersEMzs = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_SZ_CALIB_CEMC");
+      towersIHzs = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_SZ_CALIB_HCALIN");
+      towersOHzs = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_SZ_CALIB_HCALOUT");
     }
 
     if(_dataormc) {
-      towersEM = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC");
-      towersIH = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN");
-      towersOH = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT");
+      towersEM = findNode::getClass<TowerInfoContainerv1>(topNode, _emcal_node);
+      towersIH = findNode::getClass<TowerInfoContainerv1>(topNode, _ihcal_node);
+      towersOH = findNode::getClass<TowerInfoContainerv1>(topNode, _ohcal_node);
       towersEMuc = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERS_CEMC");
       towersIHuc = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERS_HCALIN");
       towersOHuc = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERS_HCALOUT");
@@ -199,26 +222,28 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
       towersOHzs = findNode::getClass<TowerInfoContainerv3>(topNode, "WAVEFORMS_HCALOUT");
     }
 
-    
+    cout << "em/ih/oh/emuc/ihuc/ohuc/emzs/ihzs/ohzs: " << towersEM << " " << towersIH << " " << towersOH << " " << towersEMuc << " " << towersIHuc << " " << towersOHuc;
+    cout << " " << towersEMzs << " " << towersIHzs << " " << towersOHzs << endl;
 
     if(_debug) cout << "Checking that all necessary objects exist" << endl;
-    if(!towersEM || !towersIH || !towersOH || !geomEM || !geomIH || !geomOH)
+    if((!towersEM && use_emcal) || (!towersIH && use_hcal) || (!towersOH && use_hcal) || (!geomEM && use_emcal) || (!geomIH && use_hcal) || (!geomOH && use_hcal)) 
     {
       cout << "em/ih/oh/gem/gih/goh: " << towersEM << " " << towersIH << " " << towersOH << " " << geomEM << " " << geomIH << " " << geomOH << endl;
       return Fun4AllReturnCodes::EVENT_OK; //remove events which do not have all required information
     }
-    if(!_dataormc && (!towersIHuc || !towersEMuc || !towersOHuc))
+    if(!_dataormc && ((!towersIHuc && use_hcal) || (!towersEMuc && use_emcal) || (!towersOHuc && use_hcal)))
     {
       cout << "uce/uci/uco: " << " " << towersEMuc << " " << towersIHuc << " " << towersOHuc << endl; 
       return Fun4AllReturnCodes::EVENT_OK;
     }
-    if(!_dataormc && (!towersEMzs || !towersIHzs || !towersOHzs))
+    if(!_dataormc && ((!towersIHzs && use_hcal) || (!towersEMzs && use_emcal) || (!towersOHzs && use_hcal)))
     {
       cout << "em_zs/ih_zs/oh_zs: " << towersEMzs << " " << towersIHzs << " " << towersOHzs << endl;
       return Fun4AllReturnCodes::EVENT_OK;
     }
     if(_debug) cout << "EM geomtry node: " << geomEM << endl;
     
+    if (use_mbd) { 
     if (_debug) cout << "Getting Centrality and MinimumBiasInfo nodes" << endl;
     float centile = 0;
     CentralityInfo *centrality = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
@@ -241,10 +266,11 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
       std::cout << "no minimumbias node " << std::endl;
       //return Fun4AllReturnCodes::ABORTRUN;
     }
+    }
 
     if(_debug) cout << "Getting vertex" << endl;
 
-    {
+    if (use_mbd) { 
       MbdVertexMap* mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
       if(_debug) cout << "mbdmap: " << mbdmap << endl;
       if(!mbdmap || mbdmap->empty())
@@ -276,12 +302,12 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         }
       track_vtx[0] = 0;
       track_vtx[1] = 0;
-    }
+    
     if(_debug)
     {
       cout << "MBD zvtx: " << track_vtx[2] << endl;
     }
-
+    }
     float EMCalEtot = 0;
     if(_debug) cout << "Getting EMCal info" << endl;
     if(towersEM) { //get EMCal values
@@ -292,10 +318,22 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         int key = towersEM->encode_key(i);
         int etabin = towersEM->getTowerEtaBin(key);
         int phibin = towersEM->getTowerPhiBin(key);
-        if(tower->get_isHot()) {
+        if (etabin == 89 && phibin == 40) {
+          if (tower->get_isHot() || tower->get_isNoCalib() || tower->get_isBadChi2() || tower->get_isNotInstr()) {
+            std::cout << "EMCal ieta " << etabin << " iphi " << phibin;
+            std::cout << " hot " << tower->get_isHot() << " no calib " <<  tower->get_isNoCalib() << " bad chi2 " << tower->get_isBadChi2() << " not instr " << tower->get_isNotInstr() << std::endl; 
+          } else {
+            std::cout << "NOT HOT EMCal ieta " << etabin << " iphi " << phibin;
+            std::cout << " hot " << tower->get_isHot() << " no calib " <<  tower->get_isNoCalib() << " bad chi2 " << tower->get_isBadChi2() << " not instr " << tower->get_isNotInstr() << std::endl; 
+          
+          }
+        }
+        if(tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr()) {
           hotmap[0][etabin][phibin] = 1;
+          //std::cout << "EMCal hot tower ieta " << etabin << " iphi " << phibin << std::endl;
           continue;
         }
+        if (goodmap[0][etabin][phibin] == 0 && tower->get_isGood() && tower->get_energy() != 0) { goodmap[0][etabin][phibin] = 1; }
         //if(!_dataormc && towersEMuc->get_tower_at_channel(i)->get_energy() == 0) {
         //  if(_debug > 1) { cout << "EMCal ADC 0 in tower " << i << endl; }
         //    continue;
@@ -307,16 +345,10 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         //  continue; //timing cut
         //}
         // check to see if the tower has a bad chi2 but is not isHot, if so break loop and end this event
-        if (!_dataormc && !tower->get_isHot() && tower->get_isBadChi2()) { 
-          if (etabin == 13 && phibin == 232) {
-            std::cout << "intermittant bad channel: EMCal ieta " << etabin << " iphi " << phibin << std::endl;
-          } else if (etabin == 47 && phibin == 138) {
-            std::cout << "intermittant bad channel: EMCal ieta " << etabin << " iphi " << phibin << std::endl;
-          } else {
-            std::cout << "intermittant bad channel: EMCal ieta " << etabin << " iphi " << phibin << std::endl;
-            goodevent = 0;
-            break;
-          }
+        if (!_dataormc && !(tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr()) && tower->get_isBadChi2()) { 
+          std::cout << "intermittant bad channel: EMCal ieta " << etabin << " iphi " << phibin << std::endl;
+          goodevent = 0;
+          break;
         }
         
         if(_debug > 2) cout << "i/time: " << i << " " << time << endl;
@@ -327,14 +359,16 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, etabin, phibin);
         RawTowerGeom *tower_geom = geomEM->get_tower_geometry(geomkey); //encode tower geometry
         emcalt[sectorem] = time; //store time value
-        if(!_dataormc) emcaladc[sectorem] = towersEMuc->get_tower_at_channel(i)->get_energy(); //emcal ADC value (uncalibrated "energy")
-        if (!_dataormc) emcalzs[sectorem] = towersEMzs->get_tower_at_channel(i)->get_energy(); // emcal zero suppressed calibrated value (GeV)
-        if (!_dataormc) emcalzsadc[sectorem] = towersEMuczs->get_tower_at_channel(i)->get_energy(); // emcal zero suppressed ADC value
+        if (!_dataormc) {
+          emcaladc[sectorem] = towersEMuc->get_tower_at_channel(i)->get_energy(); //emcal ADC value (uncalibrated "energy")
+          emcalzs[sectorem] = towersEMzs->get_tower_at_channel(i)->get_energy(); // emcal zero suppressed calibrated value (GeV)
+          emcalzsadc[sectorem] = towersEMuczs->get_tower_at_channel(i)->get_energy(); // emcal zero suppressed ADC value
+        }
         //if (_dataormc) emcalzs[sectorem] = towersEMzs->get_tower_at_channel(i)->get_waveform_value(6) - towersEMzs->get_tower_at_channel(i)->get_waveform_value(0);
         emcalpos[sectorem][0] = tower_geom->get_center_x(); //get positions of towers
         emcalpos[sectorem][1] = tower_geom->get_center_y();
         emcalpos[sectorem][2] = tower_geom->get_center_z();
-        double newz = emcalpos[sectorem][2] - track_vtx[2];
+        double newz = emcalpos[sectorem][2] - (track_vtx[2]);
         double newx = emcalpos[sectorem][0] - track_vtx[0];
         double newy = emcalpos[sectorem][1] - track_vtx[1];
         double oldx = tower_geom->get_center_x();
@@ -351,6 +385,7 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
     if(_debug) cout << "total EMCal E: " << EMCalEtot << endl;
 
     if(_debug) cout << "Getting OHCal info" << endl;
+    float OHCalEtot = 0.0;
     if(towersOH) { //essentially the same as for EMCal, just with fewer sectors and named OH
       int nchannels = 1536;
       for(int i=0; i<nchannels; ++i) {
@@ -359,10 +394,12 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         int key = towersOH->encode_key(i);
         int etabin = towersOH->getTowerEtaBin(key);
         int phibin = towersOH->getTowerPhiBin(key);
-        if(tower->get_isHot()) {
+        if(tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr()) {
           hotmap[2][etabin][phibin] = 1;
+          //std::cout << "OHCal hot tower ieta " << etabin << " iphi " << phibin << std::endl;
           continue;
         }
+        if (goodmap[2][etabin][phibin] == 0 && tower->get_isGood() && tower->get_energy() != 0) { goodmap[2][etabin][phibin] = 1; }
         //if(!_dataormc && towersOHuc->get_tower_at_channel(i)->get_energy() == 0) {
         //  if(_debug > 1) { cout << "OHCal ADC 0 in tower " << i << endl; }
         //  continue;
@@ -370,13 +407,15 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         float time = towersOH->get_tower_at_channel(i)->get_time_float();
         //if(!_dataormc && (time > 3.5 || time < -3)) continue; // using no timing cuts
         // check to see if the tower has a bad chi2 but is not isHot, if so break loop and end this event
-        if (!_dataormc && !tower->get_isHot() && tower->get_isBadChi2()) { 
-          std::cout << "intermittant bad channel: OHCal ieta " << etabin << " iphi " << phibin << std::endl;
+        if (!_dataormc && !(tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr()) && tower->get_isBadChi2()) { 
+          std::cout << "intermittant bad channel: OHCal ieta " << etabin << " iphi " << phibin << " bad chi2 " << tower->get_isBadChi2() << " chi2 " << tower->get_chi2() << std::endl;
           goodevent = 0;
           break;
         }
+
         ohcalen[sectoroh] = tower->get_energy();
         ohchi2[sectoroh] = tower->get_chi2();
+        OHCalEtot += ohcalen[sectoroh];
         const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, etabin, phibin);
         RawTowerGeom *tower_geom = geomOH->get_tower_geometry(geomkey);
         ohcalt[sectoroh] = time;
@@ -387,7 +426,7 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         ohcalpos[sectoroh][0] = tower_geom->get_center_x();
         ohcalpos[sectoroh][1] = tower_geom->get_center_y();
         ohcalpos[sectoroh][2] = tower_geom->get_center_z();
-        double newz = ohcalpos[sectoroh][2] - track_vtx[2];
+        double newz = ohcalpos[sectoroh][2] - (track_vtx[2]);
         double newx = ohcalpos[sectoroh][0] - track_vtx[0];
         double newy = ohcalpos[sectoroh][1] - track_vtx[1];
         double oldx = tower_geom->get_center_x();
@@ -400,9 +439,12 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         ohcalphibin[sectoroh] = phibin;
         sectoroh++;
       }
+      if(_debug) cout << sectoroh << endl;
     }
+    if(_debug) cout << "total OHCal E: " << OHCalEtot << endl;
 
     if(_debug) cout << "Getting IHCal info" << endl;
+    float IHCalEtot = 0.0;
     if(towersIH) { //same
       int nchannels = 1536;
       for(int i=0; i<nchannels; ++i) {
@@ -411,10 +453,13 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         int key = towersIH->encode_key(i);
         int etabin = towersIH->getTowerEtaBin(key);
         int phibin = towersIH->getTowerPhiBin(key);
-        if(tower->get_isHot()) {
+        if(tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr()) {
           hotmap[1][etabin][phibin] = 1;
+          //std::cout << "IHCal hot tower ieta " << etabin << " iphi " << phibin << std::endl;
           continue;
         }
+        // goodmap reports 1 if good with energy, 0 if good with no energy 
+        if (goodmap[1][etabin][phibin] == 0 && tower->get_isGood() && tower->get_energy() != 0) { goodmap[1][etabin][phibin] = 1; }
         //if(!_dataormc && towersIHuc->get_tower_at_channel(i)->get_energy() == 0) {
         //  if(_debug > 1) { cout << "IHCal ADC 0 in tower " << i << endl; }
         //  continue;
@@ -422,14 +467,14 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         float time = towersIH->get_tower_at_channel(i)->get_time_float();
         // if(!_dataormc && (time > 2 || time < -2.5)) continue; // using no timing cuts
         // check to see if the tower has a bad chi2 but not isHot, if so break loop and end this event
-        if (!_dataormc && !tower->get_isHot() && tower->get_isBadChi2()) { 
-          std::cout << "intermittant bad channel: IHCal ieta " << etabin << " iphi " << phibin << std::endl;
+        if (!_dataormc && !(tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr()) && tower->get_isBadChi2()) { 
+          std::cout << "intermittant bad channel: IHCal ieta " << etabin << " iphi " << phibin << " bad chi2 " << tower->get_isBadChi2() << " chi2 " << tower->get_chi2() << std::endl;
           goodevent = 0;
           break;
         }
         ihcalen[sectorih] = tower->get_energy();
         ihchi2[sectorih] = tower->get_chi2();
-        ihishot[sectorih] = tower->get_isHot();
+        IHCalEtot += ihcalen[sectorih];
         const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, etabin, phibin);
         RawTowerGeom *tower_geom = geomIH->get_tower_geometry(geomkey);
         ihcalt[sectorih] = time;
@@ -440,7 +485,7 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         ihcalpos[sectorih][0] = tower_geom->get_center_x();
         ihcalpos[sectorih][1] = tower_geom->get_center_y();
         ihcalpos[sectorih][2] = tower_geom->get_center_z();
-        double newz = ihcalpos[sectorih][2] - track_vtx[2];
+        double newz = ihcalpos[sectorih][2] - (track_vtx[2]);
         double newx = ihcalpos[sectorih][0] - track_vtx[0];
         double newy = ihcalpos[sectorih][1] - track_vtx[1];
         double oldx = tower_geom->get_center_x();
@@ -454,27 +499,30 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         sectorih++;
       }
     }
+    if(_debug) cout << "total IHCal E: " << IHCalEtot << endl;
     if(_debug) cout << "Getting MBD info" << endl;
   }
-      
-  MbdPmtContainer *mbdtow = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
-  if(!mbdtow)
-  {
-    if(_debug) cout << "No MBD PMT Container found!" << endl;
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
-  sectormb = 128;//mbdtow->get_npmt();
-  //if(_debug) cout << "Got " << sectormb << " mbd sectors in sim." << endl;
-  for(int i=0; i<sectormb; ++i)
-  {
-    MbdPmtHit *mbdhit = mbdtow->get_pmt(i);
-    if(_debug > 1) cout << "PMT " << i << " address: " << mbdhit << " charge: " << mbdhit->get_q() << endl;
-    mbenrgy[i] = mbdhit->get_q();
-    mbdq += mbdhit->get_q();
+  if (use_mbd) { 
+    MbdPmtContainer *mbdtow = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
+    if(!mbdtow)
+    {
+      if(_debug) cout << "No MBD PMT Container found!" << endl;
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+    sectormb = 128;//mbdtow->get_npmt();
+    //if(_debug) cout << "Got " << sectormb << " mbd sectors in sim." << endl;
+    for(int i=0; i<sectormb; ++i)
+    {
+      MbdPmtHit *mbdhit = mbdtow->get_pmt(i);
+      if(_debug > 1) cout << "PMT " << i << " address: " << mbdhit << " charge: " << mbdhit->get_q() << endl;
+      mbenrgy[i] = mbdhit->get_q();
+      mbdq += mbdhit->get_q();
+    }
   }
         
   if(_dataormc) //get collision parameters for MC
   {
+    /*
     PHHepMCGenEventMap *hepmceventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
     if (!hepmceventmap) {
       if(_debug) std::cout << PHWHERE << "HEPMC event map node is missing, can't collected HEPMC truth particles"<< std::endl;
@@ -511,6 +559,7 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         break;
       } 
     }
+    */
 
     PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
     if (!truthinfo && _debug) std::cout << PHWHERE << "PHG4TruthInfoContainer node is missing, can't collect G4 truth particles"<< std::endl;
@@ -536,7 +585,8 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
       }
       else if(apart != baryons.end())
       {
-        truthpar_e[truthpar_n] = truth->get_e() - sqrt(truth->get_e()*truth->get_e()-psquare) + 2*pmass;
+        //truthpar_e[truthpar_n] = truth->get_e() - sqrt(truth->get_e()*truth->get_e()-psquare) + 2*pmass;
+        truthpar_e[truthpar_n] = truth->get_e() + sqrt(truth->get_e()*truth->get_e()-psquare); 
       }
       else
       {
@@ -633,6 +683,7 @@ int MDCTreeMaker::End(PHCompositeNode *topNode)
   _f->cd();
   TTree* outt = new TTree("outt","outt for hotmap");
   outt->Branch("hotmap",hotmap,"hotmap[3][96][256]/I");
+  outt->Branch("goodmap", goodmap, "goodmap[3][96][256]/I");
   outt->Fill();
   _f->Write();
   _f->Close();
