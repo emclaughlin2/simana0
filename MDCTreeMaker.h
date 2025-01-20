@@ -7,6 +7,7 @@
 #include <vector>
 #include "TTree.h"
 #include "TFile.h"
+#include <calotrigger/TriggerAnalyzer.h>
 
 class PHCompositeNode;
 class CentralityInfo;
@@ -34,11 +35,22 @@ class MDCTreeMaker : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
+  void set_useMBD(bool flag) {
+    use_mbd = flag;
+  }
+
+  void set_useEMCal(bool flag) {
+    use_emcal = flag; 
+  }
+
+  void set_useHCal(bool flag) {
+    use_hcal = flag;
+  }
 
  private:
-  bool use_hcal;
-  bool use_emcal;
-  bool use_mbd;
+  bool use_emcal = true; 
+  bool use_hcal = true; 
+  bool use_mbd = true; 
   int _evtct;
   int _correct;
   int _debug;
@@ -49,6 +61,7 @@ class MDCTreeMaker : public SubsysReco
   std::string _emcal_node;
   std::string _ihcal_node;
   std::string _ohcal_node;
+  TriggerAnalyzer *triggeranalyzer;
   int sectorem;
   int sectorih;
   int sectoroh;
