@@ -379,9 +379,9 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
           return Fun4AllReturnCodes::EVENT_OK;
         }
       if(_debug) cout << "about to get mbdvtx z value for mbdreco module with vertex pointer: " << mbdvtx << " type: " << typeid(mbdvtx).name() << endl;
-      track_vtx[2] = mbdvtx->get_z(); 
+      track_vtx[2] = mbdvtx->get_z() - 3.0; // EDITED FOR Z VERTEX RESOLUTION SYSTEMATIC
       if(_debug) cout << "got mbdvtx z value for mbdreco module" << endl;
-      if(track_vtx[2] == 0 || abs(track_vtx[2]) > 50 || isnan(track_vtx[2])) // is zero no longer the default mbd value for mbd reco 
+      if(track_vtx[2] == 0.00 || abs(track_vtx[2]) > 50 || isnan(track_vtx[2])) // is zero no longer the default mbd value for mbd reco 
         {
           if(_debug) cout << "Zero, nan or very large MBD vtx in MBDreco module - skipping event." << endl;
           return Fun4AllReturnCodes::EVENT_OK;
