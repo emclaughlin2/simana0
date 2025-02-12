@@ -28,6 +28,7 @@
 #include <mbd/MbdPmtHit.h>
 #include <jetbackground/TowerBackgroundv1.h>
 #include <cmath>
+#include <ffarawobjects/Gl1Packet.h>
 
 #include <TLorentzVector.h>
 
@@ -357,6 +358,7 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
     if(_debug) cout << "Getting vertex" << endl;
 
     if (use_mbd) { 
+      track_vtx[2] = -99;
       MbdVertexMap* mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
       if(_debug) cout << "mbdmap: " << mbdmap << endl;
       if(!mbdmap || mbdmap->empty())
@@ -381,7 +383,7 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
       if(_debug) cout << "about to get mbdvtx z value for mbdreco module with vertex pointer: " << mbdvtx << " type: " << typeid(mbdvtx).name() << endl;
       track_vtx[2] = mbdvtx->get_z();
       if(_debug) cout << "got mbdvtx z value for mbdreco module" << endl;
-      if(track_vtx[2] == 0.00 || abs(track_vtx[2]) > 50 || isnan(track_vtx[2])) // is zero no longer the default mbd value for mbd reco 
+      if(!_dataormc && (track_vtx[2] == 0.00 || abs(track_vtx[2]) > 50 || isnan(track_vtx[2]))) // is zero no longer the default mbd value for mbd reco 
         {
           if(_debug) cout << "Zero, nan or very large MBD vtx in MBDreco module - skipping event." << endl;
           return Fun4AllReturnCodes::EVENT_OK;
