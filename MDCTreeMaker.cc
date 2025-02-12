@@ -361,24 +361,24 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
       track_vtx[2] = -99;
       MbdVertexMap* mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
       if(_debug) cout << "mbdmap: " << mbdmap << endl;
-      if(!_dataormc && (!mbdmap || mbdmap->empty()))
+      if(!mbdmap || mbdmap->empty())
         {
           if(_debug) cout << "no MBD map!!" << endl;
-          return Fun4AllReturnCodes::EVENT_OK;
+          if (!_dataormc) return Fun4AllReturnCodes::EVENT_OK;
         }
       auto it = mbdmap->begin();
-      if(!_dataormc && it == mbdmap->end())
+      if(it == mbdmap->end())
         {
           if(_debug) cout << "Empty mbdmap!" << endl;
-          return Fun4AllReturnCodes::EVENT_OK;
+          if (!_dataormc) return Fun4AllReturnCodes::EVENT_OK;
         }
       if(_debug) cout << "Made iterator for mbdmap" << endl;
       MbdVertex* mbdvtx = (*it).second;
       if(_debug) cout << "Got iterator.second from mbdmap" << endl;
-      if(!_dataormc && !mbdvtx)
+      if(!mbdvtx)
         {
           if(_debug) cout << "no MBD vtx from MBDreco module!!" << endl;
-          return Fun4AllReturnCodes::EVENT_OK;
+          if (!_dataormc) return Fun4AllReturnCodes::EVENT_OK;
         }
       if(_debug) cout << "about to get mbdvtx z value for mbdreco module with vertex pointer: " << mbdvtx << " type: " << typeid(mbdvtx).name() << endl;
       track_vtx[2] = mbdvtx->get_z();
