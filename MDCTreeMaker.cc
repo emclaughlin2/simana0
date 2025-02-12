@@ -361,13 +361,13 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
       track_vtx[2] = -99;
       MbdVertexMap* mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
       if(_debug) cout << "mbdmap: " << mbdmap << endl;
-      if(!mbdmap || mbdmap->empty())
+      if(!_dataormc && (!mbdmap || mbdmap->empty()))
         {
           if(_debug) cout << "no MBD map!!" << endl;
           return Fun4AllReturnCodes::EVENT_OK;
         }
       auto it = mbdmap->begin();
-      if(it == mbdmap->end())
+      if(!_dataormc && it == mbdmap->end())
         {
           if(_debug) cout << "Empty mbdmap!" << endl;
           return Fun4AllReturnCodes::EVENT_OK;
@@ -375,7 +375,7 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
       if(_debug) cout << "Made iterator for mbdmap" << endl;
       MbdVertex* mbdvtx = (*it).second;
       if(_debug) cout << "Got iterator.second from mbdmap" << endl;
-      if(!mbdvtx)
+      if(!_dataormc && !mbdvtx)
         {
           if(_debug) cout << "no MBD vtx from MBDreco module!!" << endl;
           return Fun4AllReturnCodes::EVENT_OK;
