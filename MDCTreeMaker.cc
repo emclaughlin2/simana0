@@ -361,28 +361,28 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
       track_vtx[2] = -99;
       MbdVertexMap* mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
       if(_debug) cout << "mbdmap: " << mbdmap << endl;
-      if(!mbdmap || mbdmap->empty())
-        {
+      if(!mbdmap || mbdmap->empty()) {
           if(_debug) cout << "no MBD map!!" << endl;
           if (!_dataormc) return Fun4AllReturnCodes::EVENT_OK;
-        }
-      auto it = mbdmap->begin();
-      if(it == mbdmap->end())
-        {
+      } else {
+        auto it = mbdmap->begin();
+        if(it == mbdmap->end()) {
           if(_debug) cout << "Empty mbdmap!" << endl;
           if (!_dataormc) return Fun4AllReturnCodes::EVENT_OK;
+        } else {
+          if(_debug) cout << "Made iterator for mbdmap" << endl;
+          MbdVertex* mbdvtx = (*it).second;
+          if(_debug) cout << "Got iterator.second from mbdmap" << endl;
+          if(!mbdvtx) {
+            if(_debug) cout << "no MBD vtx from MBDreco module!!" << endl;
+            if (!_dataormc) return Fun4AllReturnCodes::EVENT_OK;
+          } else {
+            if(_debug) cout << "about to get mbdvtx z value for mbdreco module with vertex pointer: " << mbdvtx << " type: " << typeid(mbdvtx).name() << endl;
+            track_vtx[2] = mbdvtx->get_z();
+            if(_debug) cout << "got mbdvtx z value for mbdreco module" << endl;
+          }
         }
-      if(_debug) cout << "Made iterator for mbdmap" << endl;
-      MbdVertex* mbdvtx = (*it).second;
-      if(_debug) cout << "Got iterator.second from mbdmap" << endl;
-      if(!mbdvtx)
-        {
-          if(_debug) cout << "no MBD vtx from MBDreco module!!" << endl;
-          if (!_dataormc) return Fun4AllReturnCodes::EVENT_OK;
-        }
-      if(_debug) cout << "about to get mbdvtx z value for mbdreco module with vertex pointer: " << mbdvtx << " type: " << typeid(mbdvtx).name() << endl;
-      track_vtx[2] = mbdvtx->get_z();
-      if(_debug) cout << "got mbdvtx z value for mbdreco module" << endl;
+      }
       if(!_dataormc && (track_vtx[2] == 0.00 || abs(track_vtx[2]) > 50 || isnan(track_vtx[2]))) // is zero no longer the default mbd value for mbd reco 
         {
           if(_debug) cout << "Zero, nan or very large MBD vtx in MBDreco module - skipping event." << endl;
