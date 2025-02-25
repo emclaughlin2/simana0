@@ -103,6 +103,9 @@ class MDCTreeMaker : public SubsysReco
   int emcalphibin[24576];
   int ihcalphibin[1536];
   int ohcalphibin[1536];
+  int emcalstatus[24576];
+  int ihcalstatus[1536];
+  int ohcalstatus[1536];
   float mbenrgy[256];
   float mbtime[256];
   float mbd_total_q;

@@ -111,21 +111,24 @@ int MDCTreeMaker::Init(PHCompositeNode *topNode)
   _tree->Branch("mbd_total_q", &mbd_total_q, "mbd_total_q/F");
   _tree->Branch("isMinBias",&isMinBias,"isMinBias/O");
   _tree->Branch("centbin",&centbin,"centbin/I");
+  _tree->Branch("emcalt",emcalt,"emcalt[sectorem]/F"); //time value of EMCal sector
+  _tree->Branch("ihcalt",ihcalt,"ihcalt[sectorih]/F");
+  _tree->Branch("ohcalt",ohcalt,"ohcalt[sectoroh]/F");
+  _tree->Branch("emcalstatus",emcalstatus,"emcalstatus[sectorem]/I");
+  _tree->Branch("ihcalstatus",ihcalstatus,"ihcalstatus[sectorih]/I");
+  _tree->Branch("ohcalstatus",ohcalstatus,"ohcalstatus[sectoroh]/I");
+  _tree->Branch("emchi2",emchi2,"emchi2[sectorem]/F");
+  _tree->Branch("ihchi2",ihchi2,"ihchi2[sectorih]/F");
+  _tree->Branch("ohchi2",ohchi2,"ohchi2[sectoroh]/F");
 
   if(!_dataormc)
     {
-      _tree->Branch("emcalt",emcalt,"emcalt[sectorem]/F"); //time value of EMCal sector
-      _tree->Branch("ihcalt",ihcalt,"ihcalt[sectorih]/F");
-      _tree->Branch("ohcalt",ohcalt,"ohcalt[sectoroh]/F");
       _tree->Branch("emcaladc",emcaladc,"emcaladc[sectorem]/I"); //time value of EMCal sector
       _tree->Branch("ihcaladc",ihcaladc,"ihcaladc[sectorih]/I");
       _tree->Branch("ohcaladc",ohcaladc,"ohcaladc[sectoroh]/I");
       _tree->Branch("emcalzsadc", emcalzsadc, "emcalzsadc[sectorem]/I");
       _tree->Branch("ihcalzsadc", ihcalzsadc, "ihcalzsadc[sectorih]/I");
       _tree->Branch("ohcalzsadc", ohcalzsadc, "ohcalzsadc[sectoroh]/I");
-      _tree->Branch("emchi2",emchi2,"emchi2[sectorem]/F");
-      _tree->Branch("ihchi2",ihchi2,"ihchi2[sectorih]/F");
-      _tree->Branch("ohchi2",ohchi2,"ohchi2[sectoroh]/F");
       _tree->Branch("emcalsyst1",emcalsyst1,"emcalsyst1[sectorem]/F");
       _tree->Branch("emcalsyst2",emcalsyst2,"emcalsyst2[sectorem]/F");
       _tree->Branch("emcalsyst3u",emcalsyst3u,"emcalsyst3u[sectorem]/F");
@@ -451,6 +454,7 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, etabin, phibin);
         RawTowerGeom *tower_geom = geomEM->get_tower_geometry(geomkey); //encode tower geometry
         emcalt[sectorem] = time; //store time value
+        emcalstatus[sectorem] = (int)tower->get_status();
         /*if (!_dataormc) {
           emcaladc[sectorem] = towersEMuc->get_tower_at_channel(i)->get_energy(); //emcal ADC value (uncalibrated "energy")
           emcalzs[sectorem] = towersEMzs->get_tower_at_channel(i)->get_energy(); // emcal zero suppressed calibrated value (GeV)
@@ -516,6 +520,7 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, etabin, phibin);
         RawTowerGeom *tower_geom = geomOH->get_tower_geometry(geomkey);
         ohcalt[sectoroh] = time;
+        ohcalstatus[sectoroh] = (int)tower->get_status();
         /*if(!_dataormc)  {
           ohcaladc[sectoroh] = towersOHuc->get_tower_at_channel(i)->get_energy();
           ohcalzs[sectoroh] = towersOHzs->get_tower_at_channel(i)->get_energy();
@@ -581,6 +586,7 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         const RawTowerDefs::keytype geomkey = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, etabin, phibin);
         RawTowerGeom *tower_geom = geomIH->get_tower_geometry(geomkey);
         ihcalt[sectorih] = time;
+        ihcalstatus[sectorih] = (int)tower->get_status();
         /*if(!_dataormc) {
           ihcaladc[sectorih] = towersIHuc->get_tower_at_channel(i)->get_energy();
           ihcalzs[sectorih] = towersIHzs->get_tower_at_channel(i)->get_energy();
