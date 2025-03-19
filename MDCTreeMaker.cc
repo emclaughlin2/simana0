@@ -131,7 +131,7 @@ int MDCTreeMaker::Init(PHCompositeNode *topNode)
       _tree->Branch("ohcalzsadc", ohcalzsadc, "ohcalzsadc[sectoroh]/I");
       _tree->Branch("emcalsyst1",emcalsyst1,"emcalsyst1[sectorem]/F");
       _tree->Branch("emcalsyst2",emcalsyst2,"emcalsyst2[sectorem]/F");
-      _tree->Branch("emcalsyst3u",emcalsyst3u,"emcalsyst3u[sectorem]/F");
+      _tree->Branch("emcalsyst3",emcalsyst3,"emcalsyst3[sectorem]/F");
       _tree->Branch("emcalsyst3d",emcalsyst3d,"emcalsyst3d[sectorem]/F");
       _tree->Branch("emcalsyst4",emcalsyst4,"emcalsyst4[sectorem]/F"); 
       _tree->Branch("ihcalsyst1",ihcalsyst1,"ihcalsyst1[sectorih]/F");
@@ -159,6 +159,7 @@ int MDCTreeMaker::Init(PHCompositeNode *topNode)
       _tree->Branch("ncoll",&ncoll,"ncoll/I");
       _tree->Branch("bimp",&bimp,"bimp/F");
       _tree->Branch("truth_vtx",truth_vtx,"truth_vtx[3]/F");
+      _tree->Branch("truthpar_pid",truthpar_pid,"truthpar_pid[truthpar_n]/I");
       /*
       _tree->Branch("truthpar_nh",&truthpar_nh,"truthpar_nh/I");
       _tree->Branch("truthparh_pz",truthparh_pz,"truthparh_pz[truthpar_nh]/F");
@@ -213,7 +214,7 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
     TowerInfoContainer *towersOHzs;
     TowerInfoContainer *towersEMsyst1;
     TowerInfoContainer *towersEMsyst2;
-    TowerInfoContainer *towersEMsyst3u;
+    TowerInfoContainer *towersEMsyst3;
     TowerInfoContainer *towersEMsyst3d;
     TowerInfoContainer *towersEMsyst4;
     TowerInfoContainer *towersIHsyst1;
@@ -239,20 +240,21 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
       towersEMzs = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_SZ_CALIB_CEMC");
       towersIHzs = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_SZ_CALIB_HCALIN");
       towersOHzs = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_SZ_CALIB_HCALOUT");
-      towersEMsyst1 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST1CEMC");
-      towersEMsyst2 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST2CEMC");
-      towersEMsyst3u = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST3UCEMC");
-      towersEMsyst3d = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST3DCEMC");
-      towersEMsyst4 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST4CEMC");
-      towersIHsyst1 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST1HCALIN");
-      towersIHsyst2 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST2HCALIN");
-      towersIHsyst3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST3HCALIN");
-      towersIHsyst4 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST4HCALIN"); 
-      towersOHsyst1 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST1HCALOUT");
-      towersOHsyst2 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST2HCALOUT");
-      towersOHsyst3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST3HCALOUT");
-      towersOHsyst4 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST4HCALOUT");   
-      */   
+      */
+      towersEMsyst1 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST1_CEMC");
+      towersEMsyst2 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST2_CEMC");
+      towersEMsyst3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST3_CEMC");
+      //towersEMsyst3d = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST3DCEMC");
+      //towersEMsyst4 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST4CEMC");
+      towersIHsyst1 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST1_HCALIN");
+      towersIHsyst2 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST2_HCALIN");
+      towersIHsyst3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST3_HCALIN");
+      //towersIHsyst4 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST4HCALIN"); 
+      towersOHsyst1 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST1_HCALOUT");
+      towersOHsyst2 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST2_HCALOUT");
+      towersOHsyst3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST3_HCALOUT");
+      //towersOHsyst4 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SYST4HCALOUT");   
+         
        
     }
 
@@ -291,12 +293,12 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
       cout << "em_zs/ih_zs/oh_zs: " << towersEMzs << " " << towersIHzs << " " << towersOHzs << endl;
       return Fun4AllReturnCodes::EVENT_OK;
     }
-
-    if (!_dataormc && use_emcal && (!towersEMsyst1 || !towersEMsyst2 || !towersEMsyst3u || !towersEMsyst3d || ! towersEMsyst4)) {
-      cout << "em_syst1/em_syst2/em_syst3u/em_syst3d/em_syst4: " << towersEMsyst1 << " " << towersEMsyst2 << " " << towersEMsyst3u << " " << towersEMsyst3d << " " << towersEMsyst4 << endl;
+    */
+    if (!_dataormc && use_emcal && (!towersEMsyst1 || !towersEMsyst2 || !towersEMsyst3)) {
+      cout << "em_syst1/em_syst2/em_syst3: " << towersEMsyst1 << " " << towersEMsyst2 << " " << towersEMsyst3 << endl;
       return Fun4AllReturnCodes::EVENT_OK;
     }
-    */
+    
     
     if(_debug) cout << "EM geomtry node: " << geomEM << endl;
     
@@ -345,7 +347,7 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         //bool isMBDfired = triggeranalyzer->didTriggerFire(10);
         if (trig) {
           std::cout << "MBD fired" << std::endl;
-        } else {
+        } else if (!trig && !_dataormc) {
           std::cout << "MBD not fired, not minbias" << std::endl;
           isMinBias = false;
       }
@@ -455,16 +457,16 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         RawTowerGeom *tower_geom = geomEM->get_tower_geometry(geomkey); //encode tower geometry
         emcalt[sectorem] = time; //store time value
         emcalstatus[sectorem] = (int)tower->get_status();
-        /*if (!_dataormc) {
-          emcaladc[sectorem] = towersEMuc->get_tower_at_channel(i)->get_energy(); //emcal ADC value (uncalibrated "energy")
-          emcalzs[sectorem] = towersEMzs->get_tower_at_channel(i)->get_energy(); // emcal zero suppressed calibrated value (GeV)
-          emcalzsadc[sectorem] = towersEMuczs->get_tower_at_channel(i)->get_energy(); // emcal zero suppressed ADC value 
+        if (!_dataormc) {
+          //emcaladc[sectorem] = towersEMuc->get_tower_at_channel(i)->get_energy(); //emcal ADC value (uncalibrated "energy")
+          //emcalzs[sectorem] = towersEMzs->get_tower_at_channel(i)->get_energy(); // emcal zero suppressed calibrated value (GeV)
+          //emcalzsadc[sectorem] = towersEMuczs->get_tower_at_channel(i)->get_energy(); // emcal zero suppressed ADC value 
           emcalsyst1[sectorem] = towersEMsyst1->get_tower_at_channel(i)->get_energy(); 
           emcalsyst2[sectorem] = towersEMsyst2->get_tower_at_channel(i)->get_energy();
-          emcalsyst3u[sectorem] = towersEMsyst3u->get_tower_at_channel(i)->get_energy();
-          emcalsyst3d[sectorem] = towersEMsyst3d->get_tower_at_channel(i)->get_energy();
-          emcalsyst4[sectorem] = towersEMsyst4->get_tower_at_channel(i)->get_energy(); 
-        }*/
+          emcalsyst3[sectorem] = towersEMsyst3->get_tower_at_channel(i)->get_energy();
+          //emcalsyst3d[sectorem] = towersEMsyst3d->get_tower_at_channel(i)->get_energy();
+          //emcalsyst4[sectorem] = towersEMsyst4->get_tower_at_channel(i)->get_energy(); 
+        }
         //if (_dataormc) emcalzs[sectorem] = towersEMzs->get_tower_at_channel(i)->get_waveform_value(6) - towersEMzs->get_tower_at_channel(i)->get_waveform_value(0);
         emcalpos[sectorem][0] = tower_geom->get_center_x(); //get positions of towers
         emcalpos[sectorem][1] = tower_geom->get_center_y();
@@ -521,15 +523,15 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         RawTowerGeom *tower_geom = geomOH->get_tower_geometry(geomkey);
         ohcalt[sectoroh] = time;
         ohcalstatus[sectoroh] = (int)tower->get_status();
-        /*if(!_dataormc)  {
-          ohcaladc[sectoroh] = towersOHuc->get_tower_at_channel(i)->get_energy();
-          ohcalzs[sectoroh] = towersOHzs->get_tower_at_channel(i)->get_energy();
-          ohcalzsadc[sectoroh] = towersOHuczs->get_tower_at_channel(i)->get_energy();
+        if(!_dataormc)  {
+          //ohcaladc[sectoroh] = towersOHuc->get_tower_at_channel(i)->get_energy();
+          //ohcalzs[sectoroh] = towersOHzs->get_tower_at_channel(i)->get_energy();
+          //ohcalzsadc[sectoroh] = towersOHuczs->get_tower_at_channel(i)->get_energy();
           ohcalsyst1[sectoroh] = towersOHsyst1->get_tower_at_channel(i)->get_energy(); 
           ohcalsyst2[sectoroh] = towersOHsyst2->get_tower_at_channel(i)->get_energy();
           ohcalsyst3[sectoroh] = towersOHsyst3->get_tower_at_channel(i)->get_energy();
-          ohcalsyst4[sectoroh] = towersOHsyst4->get_tower_at_channel(i)->get_energy(); 
-        }*/
+          //ohcalsyst4[sectoroh] = towersOHsyst4->get_tower_at_channel(i)->get_energy(); 
+        }
         //if (_dataormc) ohcalzs[sectoroh] = towersOHzs->get_tower_at_channel(i)->get_waveform_value(6) - towersOHzs->get_tower_at_channel(i)->get_waveform_value(0);
         ohcalpos[sectoroh][0] = tower_geom->get_center_x();
         ohcalpos[sectoroh][1] = tower_geom->get_center_y();
@@ -587,15 +589,15 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
         RawTowerGeom *tower_geom = geomIH->get_tower_geometry(geomkey);
         ihcalt[sectorih] = time;
         ihcalstatus[sectorih] = (int)tower->get_status();
-        /*if(!_dataormc) {
-          ihcaladc[sectorih] = towersIHuc->get_tower_at_channel(i)->get_energy();
-          ihcalzs[sectorih] = towersIHzs->get_tower_at_channel(i)->get_energy();
-          ihcalzsadc[sectorih] = towersIHuczs->get_tower_at_channel(i)->get_energy(); 
+        if(!_dataormc) {
+          //ihcaladc[sectorih] = towersIHuc->get_tower_at_channel(i)->get_energy();
+          //ihcalzs[sectorih] = towersIHzs->get_tower_at_channel(i)->get_energy();
+          //ihcalzsadc[sectorih] = towersIHuczs->get_tower_at_channel(i)->get_energy(); 
           ihcalsyst1[sectorih] = towersIHsyst1->get_tower_at_channel(i)->get_energy(); 
           ihcalsyst2[sectorih] = towersIHsyst2->get_tower_at_channel(i)->get_energy();
           ihcalsyst3[sectorih] = towersIHsyst3->get_tower_at_channel(i)->get_energy();
-          ihcalsyst4[sectorih] = towersIHsyst4->get_tower_at_channel(i)->get_energy(); 
-        }*/
+          //ihcalsyst4[sectorih] = towersIHsyst4->get_tower_at_channel(i)->get_energy(); 
+        }
         //if (_dataormc) ihcalzs[sectorih] = towersIHzs->get_tower_at_channel(i)->get_waveform_value(6) - towersIHzs->get_tower_at_channel(i)->get_waveform_value(0);
         ihcalpos[sectorih][0] = tower_geom->get_center_x();
         ihcalpos[sectorih][1] = tower_geom->get_center_y();
@@ -720,6 +722,7 @@ int MDCTreeMaker::process_event(PHCompositeNode *topNode)
       truthpar_phi[truthpar_n] = atan2(truth->get_py(), truth->get_px());
       truthpar_eta[truthpar_n] = atanh(truth->get_pz() / sqrt(truth->get_px()*truth->get_px()+truth->get_py()*truth->get_py()+truth->get_pz()*truth->get_pz()));
       if (truthpar_eta[truthpar_n] != truthpar_eta[truthpar_n]) truthpar_eta[truthpar_n] = -999; // check for nans
+      truthpar_pid[truthpar_n] = truth->get_pid();
       truthpar_n++;
       if(truthpar_n > 99999)
       {

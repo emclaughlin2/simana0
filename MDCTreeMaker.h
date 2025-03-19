@@ -69,7 +69,7 @@ class MDCTreeMaker : public SubsysReco
   float emcalen[24576];
   float emcalsyst1[24576];
   float emcalsyst2[24576];
-  float emcalsyst3u[24576];
+  float emcalsyst3[24576];
   float emcalsyst3d[24576];
   float emcalsyst4[24576];
   float ihcalsyst1[1536];
@@ -134,6 +134,7 @@ class MDCTreeMaker : public SubsysReco
   float truthpar_e[100000];
   float truthpar_eta[100000];
   float truthpar_phi[100000];
+  int truthpar_pid[100000];
   float truthparh_e[100000];
   float truthparh_pt[100000];
   float truthparh_pz[100000];
